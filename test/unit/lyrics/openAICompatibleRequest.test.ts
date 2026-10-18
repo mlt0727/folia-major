@@ -32,6 +32,12 @@ describe('provider detection', () => {
 });
 
 describe('parameter rejection evidence', () => {
+    it('does not negotiate token fields when their supplied value is invalid', () => {
+        expect(rejectsOpenAICompatibleParameter(400, JSON.stringify({
+            error: { message: 'max_tokens: Input should be a valid positive integer' },
+        }), 'max_tokens')).toBe(false);
+    });
+
     it('accepts structured OpenAI and Pydantic parameter locations', () => {
         expect(rejectsOpenAICompatibleParameter(400, JSON.stringify({
             error: { message: 'Unsupported parameter', param: 'response_format', code: 'unsupported_parameter' },
@@ -53,6 +59,22 @@ describe('parameter rejection evidence', () => {
 });
 
 describe('bounded capability negotiation', () => {
+    it('retries Claude response-format validation and remembers the supported shape', async () => {
+        const bodies: any[] = [];
+        const fetchImpl = async (_url: unknown, init: RequestInit | undefined) => {
+            const body = JSON.parse(String(init?.body));
+            bodies.push(body);
+            return body.response_format
+                ? Response.json({ error: { message: "response_format.type: Input should be 'json_schema'" } }, { status: 400 })
+                : Response.json({ choices: [{ message: { content: '{"ok":true}' } }] });
+        };
+        const body = { model: 'claude', response_format: { type: 'json_object' } };
+        expect((await send(body, fetchImpl as typeof fetch)).status).toBe(200);
+        expect((await send(body, fetchImpl as typeof fetch)).status).toBe(200);
+        expect(bodies.map(item => Boolean(item.response_format))).toEqual([true, false, false]);
+        expect(body.response_format).toEqual({ type: 'json_object' });
+    });
+
     it('remembers the successful token field after one explicit fallback', async () => {
         const bodies: any[] = [];
         const fetchImpl = vi.fn(async (_url, init) => {
