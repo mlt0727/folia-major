@@ -7,9 +7,9 @@
 
 # Folia
 
-Lyrics Reimagined
+Lyrics Reimagined // 辞曲新境
 
-**English** | [Simplified Chinese](README.zh-CN.md)
+[简体中文](README.md) | [English](README.en.md)
 
 [![GitHub release](https://img.shields.io/github/v/release/chthollyphile/folia-major?label=release)](https://github.com/chthollyphile/folia-major/releases)
 [![License](https://img.shields.io/github/license/chthollyphile/folia-major)](https://github.com/chthollyphile/folia-major/blob/main/LICENSE)
@@ -21,37 +21,37 @@ Lyrics Reimagined
 [![All Contributors](https://img.shields.io/badge/all_contributors-35-orange.svg?style=flat-square)](CONTRIBUTORS.md)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-[Get Folia](#get-folia)
+[获取方式](https://github.com/chthollyphile/folia-major#%E8%8E%B7%E5%8F%96%E6%96%B9%E5%BC%8F)
 ·
-[Deploy to Vercel](https://vercel.com/new/clone?repository-url=https://github.com/chthollyphile/folia-major)
+[Vercel 部署](https://vercel.com/new/clone?repository-url=https://github.com/chthollyphile/folia-major)
 ·
-[User Guide](https://folia-site.cielaniska.top/guide/)
+[使用指南](https://folia-site.cielaniska.top/guide/)
 ·
-[Technical Notes](docs/technical.md)
+[技术说明](docs/technical.md)
 
 </div>
 
-## About
+## 项目简介
 
-Folia is an online music player built around full-screen, immersive lyrics. It supports NetEase Cloud Music, Kugou, QQ Music, Navidrome, and local music libraries; the desktop app also supports Bodian Music, YouTube Music, and Spotify. Smart lyric matching, AI-generated color themes, and a range of full-screen lyric animations make listening feel different.
+Folia是一个以全屏沉浸式歌词播放为核心的在线音乐播放器，支持网易云、酷狗、QQ 音乐、Navidrome 和本地音乐库，桌面端还支持波点音乐、YouTube Music 和 Spotify，通过智能歌词匹配，AI生成配色主题，以及多种全屏歌词动画为用户提供独特的听歌体验。
 
-Folia ships as an Electron desktop app for Windows, macOS, and Linux, and as a Node.js web app you can deploy to many platforms.
+提供基于Electron的 windows/ macOS/ Linux 桌面端版本与基于 Node.js 的 Web 版本，支持多平台部署。
 
-To use Folia on a phone or in a browser, [deploy the web app to Vercel in one click](https://folia-site.cielaniska.top/guide/deploy-vercel), or deploy it yourself to any platform that runs Node.js.
+如果希望能够在移动设备上使用，或在浏览器上体验，可以选择[一键部署到 Vercel](https://folia-site.cielaniska.top/guide/deploy-vercel) 的 Web 版本，或自行部署到其他支持 Node.js 的平台。
 
-## Quick download
+## 快速下载
 
 > [!TIP]
-> - **GitHub**: [Latest Release](https://github.com/chthollyphile/folia-major/releases/latest) has installers for Windows, macOS, and Linux.
-> - **Cloud drives** (faster in mainland China): [Quark](https://pan.quark.cn/s/6e4c6fa3bc6f) · [Baidu](https://pan.baidu.com/s/1f0x3g-8PMcNCO-TJ5z1rPw?pwd=flia) (code `flia`). Stable installers for Windows and Apple silicon only.
+> - **GitHub**：[Latest Release](https://github.com/chthollyphile/folia-major/releases/latest)，提供 Windows / macOS / Linux 全平台安装包。
+> - **网盘**：[夸克网盘](https://pan.quark.cn/s/6e4c6fa3bc6f) · [百度云](https://pan.baidu.com/s/1f0x3g-8PMcNCO-TJ5z1rPw?pwd=flia)（提取码 `flia`），适合国内网络，仅提供 Windows 与 Apple silicon 的正式版安装包。
 >
-> For other options (web deployment, Docker, AUR, Flatpak, community mobile port), see [Get Folia](#get-folia) below.
+> 更多获取方式（Web 部署、Docker、AUR、Flatpak、社区移动版）见下方 [获取方式](#获取方式)。
 
-## Showcase
+## 展示
 
 ![visualizer](./img/visualizer.png)
 
-### Demo videos
+### 演示视频
 
 https://github.com/user-attachments/assets/af806cf1-f67f-4b88-b2e7-57db507e9e81
 
@@ -59,178 +59,176 @@ https://github.com/user-attachments/assets/fd27f4f0-64b9-4c57-8c3b-10df767f934b
 
 https://github.com/user-attachments/assets/704f195a-2194-434b-86e8-8f36290e5cc4
 
-### Selected styles
+### 部分主题预览
 
 <table>
   <tr>
     <td width="50%">
-      <img src="./img/preview-fume.png" alt="Fume preview" />
+      <img src="./img/preview-fume.png" alt="Fume 主题预览" />
     </td>
     <td width="50%">
-      <img src="./img/preview-lumi.png" alt="Luminous preview" />
+      <img src="./img/preview-lumi.png" alt="Lumi 主题预览" />
     </td>
   </tr>
   <tr>
-    <td align="center"><strong>Fume</strong></td>
-    <td align="center"><strong>Luminous</strong></td>
+    <td align="center"><strong>浮名</strong></td>
+    <td align="center"><strong>流光</strong></td>
   </tr>
   <tr>
     <td width="50%">
-      <img src="./img/preview-cad.png" alt="Mindscape preview" />
+      <img src="./img/preview-cad.png" alt="Cad 主题预览" />
     </td>
     <td width="50%">
-      <img src="./img/preview-pat.png" alt="Partita preview" />
+      <img src="./img/preview-pat.png" alt="Pat 主题预览" />
     </td>
   </tr>
   <tr>
-    <td align="center"><strong>Mindscape</strong></td>
-    <td align="center"><strong>Partita</strong></td>
+    <td align="center"><strong>心象</strong></td>
+    <td align="center"><strong>云阶</strong></td>
   </tr>
   <tr>
     <td width="50%">
-      <img src="./img/preview-cappella.jpg" alt="Cappella preview" />
+      <img src="./img/preview-cappella.jpg" alt="群唱 主题预览" />
     </td>
     <td width="50%">
-      <img src="./img/preview-tilt.png" alt="Tilt preview" />
+      <img src="./img/preview-tilt.png" alt="Tilt 主题预览" />
     </td>
   </tr>
   <tr>
-    <td align="center"><strong>Cappella</strong></td>
-    <td align="center"><strong>Tilt</strong></td>
+    <td align="center"><strong>群唱</strong></td>
+    <td align="center"><strong>倾诉</strong></td>
   </tr>
     <tr>
     <td width="50%">
-      <img src="./img/preview-diorama.png" alt="Diorama preview" />
+      <img src="./img/preview-diorama.png" alt="镜台 主题预览" />
     </td>
     <td width="50%">
-      <img src="./img/preview-pendolo.png" alt="Pendolo preview" />
+      <img src="./img/preview-pendolo.png" alt="时计 主题预览" />
     </td>
   </tr>
   <tr>
-    <td align="center"><strong>Diorama</strong></td>
-    <td align="center"><strong>Pendolo</strong></td>
+    <td align="center"><strong>镜台</strong></td>
+    <td align="center"><strong>时计</strong></td>
   </tr>
 </table>
 
-Each lyric animation has its own typography, mood, and tunable parameters, giving full-screen lyrics the richness of a lyric video while staying responsive to any window size.
+不同的歌词动画具有不同的排版氛围和可调参数，让全屏歌词拥有如同文字PV般的丰富视觉效果，同时又能兼顾响应式布局，自动适配不同窗口尺寸。
 
-## Features
+## 核心能力
 
-| Feature | Description |
+| 模块 | 说明 |
 | --- | --- |
-| Online search and playback | Search for songs, artists, or albums and play them; covers and lyrics load automatically. |
-| Local music | Import local audio files. Folia stores the index locally and never uploads file contents. See [Local Library Management](docs/local-library-management.md) (Chinese). |
-| Smart lyric matching | Local songs are matched to online lyrics and covers automatically; you can correct matches by hand. |
-| Local lyric files | Loads `.lrc`, `.vtt`, `.ttml`, `.qrc`, `.yrc`, and `.krc` files with the same name in the same folder, as well as embedded LRC lyrics. Supports the enhanced word-by-word formats produced by LDDC. |
-| Now Playing integration | Connects to a local [Now Playing](https://github.com/Widdit/now-playing-service/) service to take song, timeline, and lyric data from external players and drive Folia's stage view and full-screen lyrics. |
-| AI themes | Generates immersive backgrounds and visual parameters from a song's mood and lyrics. |
-| Multi-platform | Deploy as a web app or install the packaged desktop app. |
-| Mods (experimental) | On desktop, Folium mods can add lyric animations, backgrounds, player-page layers, commands, and more. Install officially verified mods from the [mod market](https://folium-compound.cielaniska.top). See [Mods](#mods-folium-v1x). |
+| 在线搜索与播放 | 搜索歌曲、歌手或专辑后即可播放，并自动加载相关封面与歌词。 |
+| 本地音乐支持 | 可导入本地音频文件，在本地安全保存索引信息，不上传文件内容。详细用法见 [本地音乐库管理](docs/local-library-management.md)。 |
+| 智能歌词匹配 | 本地歌曲可自动匹配在线歌词与封面，也支持手动修正匹配结果。 |
+| 本地歌词文件识别 | 自动加载同目录同名 `.lrc`、`.vtt`、`.ttml`、`.qrc`、`.yrc`、`.krc` 歌词文件，或歌词文件内嵌 LRC 歌词。适配 LDDC 生成的增强型逐字歌词格式。 |
+| Now Playing 接入 | 支持通过本机 [Now Playing](https://github.com/Widdit/now-playing-service/) 服务接入外部播放器的歌曲、时间轴与歌词信息，并驱动 Folia 的舞台视图与全屏歌词渲染。 |
+| AI 主题生成 | 基于歌曲情绪与歌词内容生成沉浸式背景与视觉参数。 |
+| 多端体验 | 提供 Web 部署方式，同时支持桌面端打包分发。 |
+| 模组系统（实验性） | 桌面版可通过 Folium 模组添加歌词动画、背景、播放页图层、命令等，并从 [模组市场](https://folium-compound.cielaniska.top) 安装官方认证的模组。详见 [模组系统](#模组系统folium-v1x)。 |
 
-## Get Folia
+## 获取方式
 
-The desktop app bundles both frontend and backend, so it works right after install.
+桌面版内置前后端运行环境，适合希望即装即用的用户。
 
-### One-click deployment
+### 一键部署
 
-To put the web app online quickly, follow the [Vercel deployment guide](https://folia-site.cielaniska.top/guide/deploy-vercel).
+如果你希望快速上线 Web 版本，请阅读 [Vercel 一键部署指南](https://folia-site.cielaniska.top/guide/deploy-vercel) 来创建项目
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/chthollyphile/folia-major)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/chthollyphile/folia-major) 
 
-Folia also deploys to Cloudflare in one click; adapt the Vercel guide accordingly.
+项目也支持一键部署到 Cloudflare，请参考 Vercel 的部署教程进行相应调整。
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/chthollyphile/folia-major)
 
-On Vercel and Cloudflare, QQ Music no longer needs a separate, always-on API instance: set `VITE_QQ_API_BASE` to `/api/qq` and add a `QQ_SESSION_SECRET` (a server-side secret, **without the `VITE_` prefix**). This setup supports login by scanning a QR code with WeChat or mobile QQ (mobile QQ requires qq-music-api 3.3.3 or later), and you must log in before playback. On Cloudflare you can also bind a Durable Object so QQ QR login uses a long-lived connection and gains QR login with the QQ Music app. For full steps, platform differences, and troubleshooting, see the [QQ Music deployment guide](docs/qq-music-deployment.md) (Chinese).
+Vercel 与 Cloudflare 上的 QQ 音乐不再需要额外部署一个常驻 API 实例：把 `VITE_QQ_API_BASE` 填成 `/api/qq`，再配一个 `QQ_SESSION_SECRET`（服务端密钥，**不加 `VITE_` 前缀**）即可。这种形态支持微信扫码和手机 QQ 扫码登录（手机 QQ 扫码要 qq-music-api 3.3.3 或更高版本），且播放前必须先登录；Cloudflare 上可以再绑定一个 Durable Object，让 QQ 扫码改走长连接，并多一个 QQ 音乐 App 扫码。完整步骤、平台差异和排错方法见 [QQ 音乐部署指南](docs/qq-music-deployment.md)。
 
-Self-hosters can use the [Docker Compose full-stack deployment](deploy/docker/README.md). Access to local music folders requires a trusted HTTPS secure context; the deployment docs cover NAS reverse proxies and certificate requirements.
+自托管用户可以使用 [Docker Compose 全栈部署](deploy/docker/README.md)。本地音乐目录访问依赖可信 HTTPS 安全上下文，部署文档包含 NAS 反向代理和证书要求。
 
-On mobile:
+关于移动端：
 
-We recommend deploying the web or self-hosted version, then installing it as a PWA (add the web app to your home screen) from Chrome for Android or iOS Safari. Folia's web version supports PWA installation.
+目前推荐移动端用户部署 Web 版本/自托管版本之后，通过chrome for android / iOS Safari 创建 PWA应用（也就是将网页应用添加到桌面，Folia web版本支持安装为PWA应用）来使用。
 
-If you are comfortable with the tooling, you can package the web version as an installable Android APK with Capacitor. See the example repository [chthollyphile/folia-sonnet](https://github.com/chthollyphile/folia-sonnet).
+有一定技术的用户可以使用 capacitor 将本项目的web版本打包成为可安装的安卓apk，具体方法可参考示范仓库：[chthollyphile/folia-sonnet](https://github.com/chthollyphile/folia-sonnet)
 
-You can also use the community Android port at [maimai993/folia-sonnet](https://github.com/maimai993/folia-sonnet). It is maintained independently by the community and its features differ from the official desktop version; please report any issues to that repository.
+也可以直接使用社区移植的安卓版：[maimai993/folia-sonnet](https://github.com/maimai993/folia-sonnet)。该版本由社区自发维护，功能会与官方 PC 版存在差异，使用中遇到问题请反馈到该社区仓库。
 
-### Direct download
+### 直接下载
 
-- **Windows / macOS / Linux**: Download the latest installers from the [Releases page](https://github.com/chthollyphile/folia-major/releases/latest).
-- **Arch Linux**: Install [folia-major-bin](https://aur.archlinux.org/packages/folia-major-bin) from the AUR.
-- **Flatpak**: A community-maintained third-party Flatpak is available on [Flatpark](https://flatpark.org/apps/top.izuna.foliamajor/).
-- **Android**: A community port is available at [maimai993/folia-sonnet](https://github.com/maimai993/folia-sonnet). It is maintained independently by the community and its features differ from the official desktop version; please report any issues to that repository.
+- **Windows / macOS / Linux**: 最新版本的安装包请前往 [Releases 页面](https://github.com/chthollyphile/folia-major/releases/latest) 下载。
+- **Arch Linux**: 可通过 AUR 获取 [folia-major-bin](https://aur.archlinux.org/packages/folia-major-bin)。
+- **Flatpak**: 社区提供的第三方 flatpak，详情见 [Flatpark](https://flatpark.org/apps/top.izuna.foliamajor/)。
+- **Android**: 社区移植的安卓版见 [maimai993/folia-sonnet](https://github.com/maimai993/folia-sonnet)。该版本由社区自发维护，功能会与官方 PC 版存在差异，使用中遇到问题请反馈到该社区仓库。
 
 > [!IMPORTANT]
-> If GitHub Releases is slow from mainland China, download from [Quark](https://pan.quark.cn/s/6e4c6fa3bc6f) or [Baidu](https://pan.baidu.com/s/1f0x3g-8PMcNCO-TJ5z1rPw?pwd=flia) instead. These links host stable installers for Windows and Apple silicon only.
+> 如果国内网络从 GitHub Releases 下载较慢，可以使用 [夸克网盘](https://pan.quark.cn/s/6e4c6fa3bc6f) 或 [百度云](https://pan.baidu.com/s/1f0x3g-8PMcNCO-TJ5z1rPw?pwd=flia) 下载。网盘链接仅提供 Windows 与 Apple silicon 的正式版安装包.
 
-For Linux packages, the Wayland / Hyprland remote control window, and other desktop details, see [Technical Notes](docs/technical.md) (Chinese).
+Linux 包、Wayland / Hyprland 遥控窗和桌面端细节见 [技术与开发说明](docs/technical.md)。
 
-## Documentation and development
+## 文档与开发
 
-For the full user guide, visit [Folia Guide](https://folia-site.cielaniska.top/guide/).
+更完整的使用说明请访问 [Folia Guide](https://folia-site.cielaniska.top/guide/)。
 
-Deployment, environment variables, local development, the Stage API, common scripts, and the tech stack are covered in [Technical Notes](docs/technical.md) (Chinese).
+部署、环境变量、本地开发、Stage API、常用脚本和技术栈见 [技术与开发说明](docs/technical.md)。
 
-Before contributing, read the [Contributing Guide](CONTRIBUTING.en.md).
-
-## Mods (Folium v1.x)
+## 模组系统（Folium v1.x）
 
 > [!NOTE]
-> Mods are experimental, available in the desktop app only, and off by default. Turn them on in **Settings → Mods → Mod system**.
+> 模组系统是实验性功能，仅桌面版可用，默认关闭，需要在「设置 → 模组 → 模组系统」中开启。
 
-Folium is Folia's mod platform. Mods can add lyric animation modes and background types, overlay content on the player page, add buttons and markers to the progress bar, register commands and settings sections, rewrite lyrics before they are displayed, and use native capabilities such as ffmpeg through a Node entry point. Mods run as trusted code: you confirm each mod in a native window before it is enabled, and confirm again after its files change.
+Folium 是 Folia 的模组平台。模组可以添加新的歌词动画模式和背景类型、在播放页上叠加内容、给进度条加按钮和标记、注册命令与设置分区、在歌词显示前改写歌词，也可以通过 Node 入口调用 ffmpeg 等本地能力。模组以可信代码运行，每个模组在启用前都要在原生窗口中确认，文件变化后需要重新确认。
 
-- **Mod market**: [folium-compound.cielaniska.top](https://folium-compound.cielaniska.top) hosts official mods and reviewed community mods. Download the zip and drag it into the Mods panel to install.
-- **Verification**: Every mod in the market carries a Folium signature and shows as **Verified** after install. Early-access mods that passed only the security review show as **Preview**. Third-party mods without a signature show as **Unverified** and still work.
-- **Developing and contributing**: The [mod development and contribution guide](docs/folium/contributing.md) walks from your first mod and local debugging through submitting to the market, review and signing, and publishing updates.
-- **API reference**: The [Folium API reference](docs/folium/api.md) is generated from the contract file and organized by registries, contexts, events, and services.
-- **Platform spec**: The [Folium spec](mods/README.md) covers manifest fields, permissions, registry semantics, events, the security model, and versioning.
-- **Example mods**: The repository's [`mods/`](mods/) folder covers lyric animations, tuning, the progress bar, player-page layers, and transparent video export.
+- **模组市场**：[folium-compound.cielaniska.top](https://folium-compound.cielaniska.top) 提供官方模组和经过审查的社区模组，下载 zip 后拖进模组面板即可安装。
+- **官方认证**：市场里的模组都带有 Folium 签名，安装后显示「官方认证」；只通过安全审查的先行测试模组显示「先行测试」；没有签名的第三方模组显示「未验证」，同样可以使用。
+- **开发与贡献**：[模组开发与贡献指南](docs/folium/contributing.md)，从写第一个模组、本地调试，到提交到模组市场、审查与签名、发布更新。
+- **API 参考**：[Folium API 参考](docs/folium/api.md)，由契约文件生成的完整接口文档，按注册表、上下文、事件、服务等分类查询。
+- **平台规范**：[Folium 规范](mods/README.md)，包括清单字段、权限、注册表语义、事件、安全模型与版本策略。
+- **示范模组**：仓库的 [`mods/`](mods/) 目录，覆盖歌词动画、调参、进度条、播放页图层与透明视频导出。
 
 ## Sync Server
 
-Folia offers an optional official sync server, `sync-server`, that syncs appearance settings and the AI theme library across devices. You host it yourself; it suits anyone who wants their color themes on every device.
+Folia 提供了可选的官方同步服务端 `sync-server`，用于在多个设备之间同步外观设置与 AI 主题库。服务端由用户自行托管，适合希望跨设备同步配色主题的用户。
 
-Deployment options:
+支持以下部署方式：
 
-- **Cloudflare Workers / D1**: Serverless, no servers to maintain. Recommended.
+- **Cloudflare Workers / D1**：免服务器运维的 Serverless 部署，推荐使用。
   [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/chthollyphile/folia-major/tree/main/sync-server)
-- **Docker**: See the [Docker deployment folder](deploy/docker/README.md) for the image and Compose setup.
-- **Self-hosted Node.js**: Uses SQLite; suits local machines or environments where Docker is inconvenient.
+- **Docker**：镜像与 Compose 入口见 [Docker 部署目录](deploy/docker/README.md)。
+- **Node.js 自托管**：使用 SQLite，适合本地或不方便使用 Docker 的环境。
 
-For environment variables, token setup, and deployment steps, see the [Sync Server deployment guide](https://folia-site.cielaniska.top/guide/deploy-sync). Once deployed, enter the server URL and `SYNC_TOKEN` in **Settings → Connections** to turn on sync.
+详细的环境变量、Token 配置与部署步骤请参阅 [Sync-Server 部署指南](https://folia-site.cielaniska.top/guide/deploy-sync)。部署完成后，在 Folia 的「设置 → 连接与集成」中填写服务端地址和 `SYNC_TOKEN` 即可启用同步。
 
-## Local music and matching
+## 本地音乐与匹配说明
 
-Folia reads audio metadata plus lyrics and covers from the same folder, and can fill in song details from NetEase Cloud Music, QQ Music, or Kugou. Automatic matching tries NetEase, then QQ, then Kugou. When a match is wrong, you can pick another candidate, restore the local data from the first import, or merge and split artist and album entries.
+Folia 会读取音频文件元数据、同目录歌词和封面，并可通过网易云、QQ 音乐或酷狗音乐补全歌曲信息。自动匹配按网易云、QQ、酷狗依次回退；匹配不准确时，可以手动选择候选、恢复首次导入的本地信息，或进一步合并、拆分艺术家与专辑实体。
 
-For importing, rescanning, matching, entry editing, playlists, caching, and troubleshooting, see [Local Library Management](docs/local-library-management.md) (Chinese).
+完整的导入、重扫、匹配、实体编辑、歌单、缓存和故障排查说明见 [本地音乐库管理](docs/local-library-management.md)。
 
 ## Community
 
-Join the Discord to chat and get help.
+加入discord社群，共同交流，获得帮助
 
 [![Discord](https://img.shields.io/discord/1541051241822687232?logo=discord&logoColor=white&label=Join%20our%20Discord)](https://discord.gg/dMDBTHxeKd)
 
-## Contributors
+## 贡献者
 
-Thanks to everyone who has filed issues, reported bugs, suggested ideas, tested, or written code. Contributions are tracked under the all-contributors specification.
+感谢所有为本项目进行 Issue 提交、Bug 报告、想法建议、测试与代码编写的贡献者，均依据 all-contributors 规范进行统计
 
-The list is long, so see [Contributors](CONTRIBUTORS.md).
+由于列表过长，贡献记录请见 [贡献者名单](CONTRIBUTORS.md)。
 
-## Legal and disclaimer
+## 法律与免责声明
 
-This project was developed with extensive AI assistance and may still contain subtle or hard-to-spot problems. We apologize for any inconvenience.
+本项目在 AI 的广泛协助下开发，因此仍可能存在细微或不易察觉的问题。若给你带来不便，敬请理解。
 
-The project mainly showcases playback animation, interface design, and the engineering behind them. Copyright in the online streams, lyrics, album art, and other content shown in the app belongs to the respective rights holders.
+本项目主要用于展示播放动效、界面设计与相关工程实现。应用中涉及的在线音乐流媒体、歌词、专辑封面及其他内容，其版权均归对应权利人所有。
 
-This repository and its source code are for personal study, technical exchange, and non-profit testing only. Do not use them for commercial purposes. Users bear sole responsibility for any copyright dispute or other liability arising from distributing, modifying, or redistributing online resources; the developers accept no liability.
+本仓库及其源代码仅供个人学习、技术交流与非营利测试使用。请勿将其用于商业盈利用途。若因对在线资源的传播、加工或再分发而引发版权纠纷或其他责任，均由使用者自行承担，项目开发者不承担相关责任。
 
-Please respect digital rights and support licensed music through official platforms whenever you can.
+请始终尊重数字版权，并在条件允许时通过官方平台支持正版音乐。
 
-## Acknowledgements
+## 致谢
 
-Special thanks to these projects and resources:
+特别感谢以下项目和资源：
 
 - [chenmozhijin/LDDC](https://github.com/chenmozhijin/LDDC)
 - [NeteaseCloudMusicApiEnhanced](https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced)
@@ -239,8 +237,8 @@ Special thanks to these projects and resources:
 - [paper-design/shaders](https://github.com/paper-design/shaders)
 - [yakult-green-tea/qq-music-api](https://github.com/yakult-green-tea/qq-music-api)
 
-Folia uses the [Apple Music-like Lyrics TTML word-by-word lyrics database](https://github.com/amll-dev/amll-ttml-db) for high-quality lyric files. Thanks to its authors and contributors.
+本项目接入了 [Apple Music-like Lyrics TTML 逐词歌词库](https://github.com/amll-dev/amll-ttml-db) 以提供高质量的歌词文件，感谢此歌词库的作者和贡献者们。
 
-## License
+## 许可证
 
-Folia is open source under the `AGPL-3.0` license.
+本项目基于 `AGPL-3.0` 许可证开源。
