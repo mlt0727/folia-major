@@ -7,9 +7,9 @@
 
 # Folia
 
-Lyrics Reimagined // 辞曲新境
+Lyrics Reimagined
 
-[简体中文](README.md) | [English](README.en.md)
+**English** | [Simplified Chinese](README.zh-CN.md)
 
 [![GitHub release](https://img.shields.io/github/v/release/chthollyphile/folia-major?label=release)](https://github.com/chthollyphile/folia-major/releases)
 [![License](https://img.shields.io/github/license/chthollyphile/folia-major)](https://github.com/chthollyphile/folia-major/blob/main/LICENSE)
@@ -17,7 +17,9 @@ Lyrics Reimagined // 辞曲新境
 [![Node.js](https://img.shields.io/badge/node-%3E%3D24-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/chthollyphile/folia-major)
 [![Discord](https://img.shields.io/discord/1541051241822687232?logo=discord&logoColor=white&label=Join%20our%20Discord)](https://discord.gg/dMDBTHxeKd)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-35-orange.svg?style=flat-square)](CONTRIBUTORS.md)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Get Folia](#get-folia)
 ·
