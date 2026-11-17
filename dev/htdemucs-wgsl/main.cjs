@@ -11,9 +11,21 @@ const path = require('path');
 //   npx rolldown dev/htdemucs-wgsl/harness.ts -o $OUT/harness.js -f iife -p browser
 //   HTW_DIR=$OUT HTW_WEIGHTS=htdemucs-wgsl.bin HTW_MIX=segments.f32 [HTW_STAGES=1] [HTW_REPEAT=5] npx electron dev/htdemucs-wgsl/main.cjs
 //
+// HTW_SOURCES=0,1,2,3 returns those sources (htdemucs' drums, bass, other, vocals) from every run, and
+// out.f32 is then [n, sources, 2, 172032] in that order.
 // HTW_F16=1 opens the device with shader-f16 and runs the GEMMs in f16 (kernels.ts GemmMode).
 // HTW_TIMINGS=1 also runs the first segment cut one dispatch per submit and writes timings.json
 // (median ms per dispatch over five runs) - the dispatches a busy visualizer frame would wait behind.
+//
+// HTW_COEXIST=1 runs coexist.ts instead (bundle it as harness.js and coexistWorker.ts as
+// coexistWorker.js into $OUT): a visible window draws a stand-in visualizer (HTW_LOAD shader
+// iterations, default 64) while a worker runs the first segment of HTW_MIX per slicing mode
+// (HTW_MODES, default none,stage,paced-q1,paced-q4; HTW_SEGMENTS each, default 8) and prints frames
+// missed and segment time per mode. On a checkout before the paced slicing use HTW_MODES=none,stage,auto.
+//
+//   npx rolldown dev/htdemucs-wgsl/coexist.ts -o $OUT/harness.js -f iife -p browser
+//   npx rolldown dev/htdemucs-wgsl/coexistWorker.ts -o $OUT/coexistWorker.js -f iife -p browser
+//   HTW_COEXIST=1 HTW_DIR=$OUT HTW_WEIGHTS=models/htdemucs-wgsl.bin HTW_MIX=segments.f32 HTW_LOAD=1500 npx electron dev/htdemucs-wgsl/main.cjs
 //
 // HTW_MIX is [n, 2, 172032] f32 (each segment left then right). Output: out.f32 ([n, 2, 172032], the drums) and
 // stage_<name>.f32. Correctness is judged by the comparison script, not here:
@@ -39,6 +51,11 @@ ipcMain.handle('htw-config', () => ({
     slice: process.env.HTW_SLICE || 'none',
     timings: process.env.HTW_TIMINGS === '1',
     f16: process.env.HTW_F16 === '1',
+    sources: process.env.HTW_SOURCES || '',
+    load: Number(process.env.HTW_LOAD || 64),
+    segments: Number(process.env.HTW_SEGMENTS || 8),
+    modes: (process.env.HTW_MODES || 'none,stage,paced-q1,paced-q4').split(',').filter(Boolean),
+    phases: process.env.HTW_PHASES || '',
 }));
 ipcMain.on('htw-log', (_event, line) => console.log(line));
 ipcMain.on('htw-done', (_event, code) => app.exit(code));
@@ -46,7 +63,9 @@ ipcMain.on('htw-done', (_event, code) => app.exit(code));
 app.whenReady().then(() => {
     const html = path.join(dir, 'harness.html');
     fs.writeFileSync(html, '<!doctype html><meta charset="utf-8"><script src="harness.js"></script>');
-    const win = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: true, contextIsolation: false, backgroundThrottling: false } });
+    // The coexistence test needs a visible window: a hidden one's animation frames are throttled.
+    const coexist = process.env.HTW_COEXIST === '1';
+    const win = new BrowserWindow({ show: coexist, width: 1280, height: 800, webPreferences: { nodeIntegration: true, contextIsolation: false, backgroundThrottling: false } });
     win.webContents.on('console-message', (event) => console.log(`[renderer] ${event.message}`));
     win.webContents.on('render-process-gone', (_event, details) => {
         console.error('renderer gone', details);

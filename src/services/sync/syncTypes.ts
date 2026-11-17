@@ -1,4 +1,4 @@
-import type { DualTheme, SubtitleContentMode, Theme, VisualizerBackgroundMode, VisualizerMode } from '../../types';
+import type { DualTheme, SubtitleContentMode, SubtitleOverlayLayout, Theme, VisualizerBackgroundMode, VisualizerMode } from '../../types';
 import type { VisualizerTuningBundle } from '../../components/visualizer/tuningRegistry';
 
 // src/services/sync/syncTypes.ts
@@ -28,12 +28,14 @@ export type SyncedVisualSettings = {
     followSystemTheme?: boolean;
     visualizerMode?: VisualizerMode;
     randomVisualizerModePerSong?: boolean;
+    randomVisualizerModes?: VisualizerMode[];
     visualizerBackgroundMode?: VisualizerBackgroundMode | null;
     backgroundOpacity?: number;
     visualizerOpacity?: number;
     hidePlayerTranslationSubtitle?: boolean;
     showSubtitleTranslation?: boolean;
     subtitleContentMode?: SubtitleContentMode;
+    subtitleOverlayLayout?: SubtitleOverlayLayout;
     subtitleOverlayBackground?: boolean;
     subtitleUpcomingLyricsBlur?: boolean;
     lyricsFontStyle?: Theme['fontStyle'];

@@ -1,4 +1,6 @@
+import { normalizeRandomVisualizerModes } from '../../utils/randomVisualizerModes';
 import { sanitizeDualTheme } from '../themeSanitizer';
+import { parseSubtitleOverlayLayout } from '../../utils/lyrics/subtitleOverlayLayout';
 // 背景模式没有 mod 投稿通道，静态清单与活注册表在任何时刻都等价。
 import { isBuiltinVisualizerBackgroundMode } from '../../types/visualizerModes';
 import {
@@ -46,6 +48,8 @@ const parseSyncedVisualSettings = (value: Record<string, unknown>): SyncedVisual
 
     if (typeof value.followSystemTheme === 'boolean') settings.followSystemTheme = value.followSystemTheme;
     if (typeof value.visualizerMode === 'string' && value.visualizerMode.trim()) settings.visualizerMode = value.visualizerMode;
+    if (typeof value.randomVisualizerModePerSong === 'boolean') settings.randomVisualizerModePerSong = value.randomVisualizerModePerSong;
+    if (Array.isArray(value.randomVisualizerModes)) settings.randomVisualizerModes = normalizeRandomVisualizerModes(value.randomVisualizerModes);
     if (value.visualizerBackgroundMode === null) settings.visualizerBackgroundMode = null;
     else if (isVisualizerBackgroundMode(value.visualizerBackgroundMode)) settings.visualizerBackgroundMode = value.visualizerBackgroundMode;
     if (isFiniteNumber(value.backgroundOpacity)) settings.backgroundOpacity = value.backgroundOpacity;
@@ -55,6 +59,8 @@ const parseSyncedVisualSettings = (value: Record<string, unknown>): SyncedVisual
     if (value.subtitleContentMode === 'translation' || value.subtitleContentMode === 'romanization' || value.subtitleContentMode === 'both' || value.subtitleContentMode === 'none') {
         settings.subtitleContentMode = value.subtitleContentMode;
     }
+    const subtitleOverlayLayout = parseSubtitleOverlayLayout(value.subtitleOverlayLayout);
+    if (subtitleOverlayLayout) settings.subtitleOverlayLayout = subtitleOverlayLayout;
     if (typeof value.subtitleOverlayBackground === 'boolean') settings.subtitleOverlayBackground = value.subtitleOverlayBackground;
     if (typeof value.subtitleUpcomingLyricsBlur === 'boolean') settings.subtitleUpcomingLyricsBlur = value.subtitleUpcomingLyricsBlur;
     if (isFontStyle(value.lyricsFontStyle)) settings.lyricsFontStyle = value.lyricsFontStyle;

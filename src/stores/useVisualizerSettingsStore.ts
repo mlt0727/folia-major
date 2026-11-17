@@ -9,18 +9,28 @@
 // (its `storage`), its field and its actions are built from that declaration by `tuningFields`,
 // and its part of the type comes from VisualizerTuningSettings, which each tuning.ts adds to. A
 // background's settings that are no tuning object come whole from its settings.ts.
+//
+// @note 帧率上限（visualizer_frame_rate）和辉光模糊量化（visualizer_glow_blur_quantize）是用户明确决定「不进外观配置导入导出」的
+// 设置（2026-11-08）：配置码也用于 web 版 OBS 链接，只加 OBS 页面看得到的；OBS 的浏览器源按 OBS 自己设的帧率渲染，辉光量化
+// 开关看起来几乎一样。同一批里的歌词画布分辨率与抗锯齿（lyricRenderQuality）进了配置码。不要按 settings-feature-integration
+// 「视觉设置必须进 buildCurrentConfig / compressConfig / decompressConfig / validKeys / handleImportConfig」的规则把这两个补进去。
 
 import { create } from 'zustand';
 import { getVisualizerModeLabel } from '../components/visualizer/registry';
 import type { StoredTuning, VisualizerTuningSettings } from '../components/visualizer/tuningDefinition';
 import { getBackgroundSettingsSlices, getStoredVisualizerTunings } from '../components/visualizer/tuningRegistry';
-import { type SmartBeatSettings, type VisualizerBackgroundMode, type VisualizerFrameRate, type VisualizerMode } from '../types';
+import { type LyricRenderQuality, type SmartBeatSettings, type VisualizerBackgroundMode, type VisualizerFrameRate, type VisualizerMode } from '../types';
 import { VISUALIZER_FRAME_RATE_STORAGE_KEY, setGlobalVisualizerFrameRate } from '../utils/frameRateLimiter';
+import { LYRIC_RENDER_QUALITY_STORAGE_KEY, normalizeLyricRenderQuality } from '../utils/lyricRenderQuality';
 import { GLOW_BLUR_QUANTIZE_STORAGE_KEY, readStoredGlowBlurQuantize, setGlowBlurQuantized } from '../utils/glowBlurQuantize';
 import i18n from '../i18n/config';
 import { setStatusMessage } from './useStatusMessageStore';
-import { SMART_BEAT_STORAGE_KEY, type SmartBeatPatch, VISUALIZER_OPACITY_STORAGE_KEY, readStoredBackgroundOpacity, readStoredSmartBeatSettings, resolveSmartBeatSettings, readStoredTuning, readStoredVisualizerBackgroundMode, readStoredVisualizerFrameRate, readStoredVisualizerMode, readStoredVisualizerOpacity, writeStoredTuning } from './visualizerSettingsPersistence';
-import { getStoredBoolean, setStoredBoolean } from './storagePrimitives';
+import { SMART_BEAT_STORAGE_KEY, type SmartBeatPatch, VISUALIZER_OPACITY_STORAGE_KEY, readStoredBackgroundOpacity, readStoredLyricRenderQuality, readStoredSmartBeatSettings, resolveSmartBeatSettings, readStoredTuning, readStoredVisualizerBackgroundMode, readStoredVisualizerFrameRate, readStoredVisualizerMode, readStoredVisualizerOpacity, toStoredSmartBeat, writeStoredTuning } from './visualizerSettingsPersistence';
+import { getStoredBoolean, setStoredBoolean, setStoredString } from './storagePrimitives';
+import { RANDOM_VISUALIZER_MODES_STORAGE_KEY, readStoredRandomVisualizerModes } from './visualizerSettingsPersistence';
+import { normalizeRandomVisualizerModes, type RandomVisualizerMode } from '../utils/randomVisualizerModes';
+
+export type SetVisualizerModeOptions = { notify?: boolean; preserveRandom?: boolean };
 
 type OwnSettingsState = {
     disableVisualizerVignette: boolean;
@@ -29,8 +39,11 @@ type OwnSettingsState = {
     visualizerOpacity: number;
     visualizerBackgroundMode: VisualizerBackgroundMode | null;
     visualizerFrameRate: VisualizerFrameRate;
+    /** 歌词画布的全局分辨率与抗锯齿挡位；样式自己的覆盖在各自的 tuning 里（utils/lyricRenderQuality.ts）。 */
+    lyricRenderQuality: LyricRenderQuality;
     visualizerMode: VisualizerMode;
     randomVisualizerModePerSong: boolean;
+    randomVisualizerModes: RandomVisualizerMode[];
     /** Snap animated glow blur radii to a bounded set. See components/visualizer/wordGlow.ts. */
     glowBlurQuantize: boolean;
     /** 智能动感模式, shared by every visualizer and background that draws beat FX: no one style's tuning. */
@@ -42,8 +55,10 @@ type OwnSettingsState = {
     handleSetVisualizerBackgroundMode: (mode: VisualizerBackgroundMode) => void;
     handleResetVisualizerBackgroundMode: () => void;
     handleSetVisualizerFrameRate: (frameRate: VisualizerFrameRate) => void;
-    handleSetVisualizerMode: (mode: VisualizerMode, options?: { notify?: boolean }) => void;
-    handleToggleRandomVisualizerModePerSong: (enable: boolean) => void;
+    handleSetLyricRenderQuality: (patch: Partial<LyricRenderQuality>) => void;
+    handleSetVisualizerMode: (mode: VisualizerMode, options?: SetVisualizerModeOptions) => void;
+    handleToggleRandomVisualizerModePerSong: (enable: boolean, options?: { notify?: boolean }) => void;
+    handleSetRandomVisualizerModes: (modes: readonly VisualizerMode[]) => void;
     handleToggleGlowBlurQuantize: (enable: boolean) => void;
     handleSetSmartBeat: (patch: SmartBeatPatch) => void;
 };
@@ -77,7 +92,7 @@ const tuningFields = (
             hold(storage.merge(held(), patch));
         },
         [settingsResetterKey]: () => {
-            hold(defaults);
+            hold(storage.reset ? storage.reset(held(), defaults) : defaults);
             if (storage.resetNotice) {
                 setStatusMessage({ type: 'info', text: i18n.t(storage.resetNotice) });
             }
@@ -105,13 +120,15 @@ export const useVisualizerSettingsStore = create<VisualizerSettingsState>((set, 
     visualizerOpacity: readStoredVisualizerOpacity(),
     visualizerBackgroundMode: readStoredVisualizerBackgroundMode(),
     visualizerFrameRate: readStoredVisualizerFrameRate(),
+    lyricRenderQuality: readStoredLyricRenderQuality(),
     visualizerMode: readStoredVisualizerMode(),
     randomVisualizerModePerSong: getStoredBoolean('random_visualizer_mode_per_song', false),
+    randomVisualizerModes: readStoredRandomVisualizerModes(),
     glowBlurQuantize: readStoredGlowBlurQuantize(),
     smartBeat: readStoredSmartBeatSettings(),
     handleSetSmartBeat: (patch) => {
         const next = resolveSmartBeatSettings(patch, get().smartBeat);
-        if (typeof window !== 'undefined') localStorage.setItem(SMART_BEAT_STORAGE_KEY, JSON.stringify(next));
+        if (typeof window !== 'undefined') localStorage.setItem(SMART_BEAT_STORAGE_KEY, JSON.stringify(toStoredSmartBeat(next)));
         set({ smartBeat: next });
     },
     handleToggleDisableVisualizerVignette: (disable) => {
@@ -162,11 +179,23 @@ export const useVisualizerSettingsStore = create<VisualizerSettingsState>((set, 
         setGlobalVisualizerFrameRate(frameRate);
         set({ visualizerFrameRate: frameRate });
     },
+    handleSetLyricRenderQuality: (patch) => {
+        const next = normalizeLyricRenderQuality({ ...get().lyricRenderQuality, ...patch });
+        const current = get().lyricRenderQuality;
+        if (next.scale === current.scale && next.antialias === current.antialias) return;
+        setStoredString(LYRIC_RENDER_QUALITY_STORAGE_KEY, JSON.stringify(next));
+        set({ lyricRenderQuality: next });
+    },
     handleSetVisualizerMode: (mode, options) => {
         if (typeof window !== 'undefined') {
             localStorage.setItem('visualizer_mode', mode);
         }
-        set({ visualizerMode: mode });
+        if (!options?.preserveRandom && get().randomVisualizerModePerSong) {
+            setStoredBoolean('random_visualizer_mode_per_song', false);
+            set({ visualizerMode: mode, randomVisualizerModePerSong: false });
+        } else {
+            set({ visualizerMode: mode });
+        }
         if (options?.notify !== false) {
             setStatusMessage({
                 type: 'info',
@@ -176,13 +205,20 @@ export const useVisualizerSettingsStore = create<VisualizerSettingsState>((set, 
             });
         }
     },
-    handleToggleRandomVisualizerModePerSong: (enable) => {
+    handleToggleRandomVisualizerModePerSong: (enable, options) => {
         setStoredBoolean('random_visualizer_mode_per_song', enable);
         set({ randomVisualizerModePerSong: enable });
-        setStatusMessage({
-            type: 'info',
-            text: i18n.t(`status.randomVisualizerModePerSong${enable ? 'On' : 'Off'}`),
-        });
+        if (options?.notify !== false) {
+            setStatusMessage({
+                type: 'info',
+                text: i18n.t(`status.randomVisualizerModePerSong${enable ? 'On' : 'Off'}`),
+            });
+        }
+    },
+    handleSetRandomVisualizerModes: (modes) => {
+        const next = normalizeRandomVisualizerModes(modes);
+        setStoredString(RANDOM_VISUALIZER_MODES_STORAGE_KEY, JSON.stringify(next));
+        set({ randomVisualizerModes: next });
     },
     handleToggleGlowBlurQuantize: (enable) => {
         if (typeof window !== 'undefined') {
@@ -215,6 +251,8 @@ export const selectVisualizerSettingsSnapshot = (state: VisualizerSettingsState)
     handleToggleDisableVisualizerVignette: state.handleToggleDisableVisualizerVignette,
     handleToggleRandomVisualizerModePerSong: state.handleToggleRandomVisualizerModePerSong,
     randomVisualizerModePerSong: state.randomVisualizerModePerSong,
+    randomVisualizerModes: state.randomVisualizerModes,
+    handleSetRandomVisualizerModes: state.handleSetRandomVisualizerModes,
     smartBeat: state.smartBeat,
     visualizerBackgroundMode: state.visualizerBackgroundMode,
     visualizerFrameRate: state.visualizerFrameRate,
@@ -223,6 +261,6 @@ export const selectVisualizerSettingsSnapshot = (state: VisualizerSettingsState)
 });
 
 // Module-level handle for the assembly layer; an action needs no subscription.
-export const handleSetVisualizerMode = (mode: VisualizerMode, options?: { notify?: boolean }) => (
+export const handleSetVisualizerMode = (mode: VisualizerMode, options?: SetVisualizerModeOptions) => (
     useVisualizerSettingsStore.getState().handleSetVisualizerMode(mode, options)
 );

@@ -10,9 +10,10 @@ import { migrateLyricDataRenderHints } from '../utils/lyrics/renderHints';
 import { isPureMusicLyricText } from '../utils/lyrics/pureMusic';
 import { autoMatchBestLyric } from '../utils/lyrics/autoMatchBestLyric';
 import { getPlatformLyricSource } from '../utils/lyrics/lyricSources';
+import { settlesOnOwnWordTiming } from '../utils/lyrics/ownWordTiming';
 import { loadOnlineLyricsState, markOnlineLyricsPureMusic, resolveOnlineLyrics, saveOnlineLyricsState } from '../utils/onlineLyricsState';
 import type { AudioQualityPreference, MediaId } from '../types/onlineMusic';
-import { getPlaybackSourceRef } from '../utils/appPlaybackGuards';
+import { getPlaybackSongKey, getPlaybackSourceRef, resolveNavidromePlaybackCarrier } from '../utils/appPlaybackGuards';
 import { nextTransitionSong, queueIndexOf } from '../utils/playbackNeighbors';
 import { omni } from './onlineMusic/omni';
 import { getSongResourceCacheKey } from './onlineMusic/resourceKeys';
@@ -20,6 +21,9 @@ import { getSongCacheWithLegacyMigration, hasCachedSongAudio } from './onlineMus
 import { toPlayableAudioUrl, toSafePlaybackUrl } from '../utils/appPlaybackHelpers';
 import { getProviderSongMetadata } from './onlineMusic/songMetadata';
 import { ensureTrackProfile, setAnalysisScope } from './automix/profileService';
+import { loadBalanceRecord } from './volumeBalance/balanceRecords';
+import { getNavidromeConfig, navidromeApi } from './navidromeService';
+import { onPlaybackRepresentationRegistered } from './playbackRecovery/representationRegistry';
 import { modeNeedsBeatGrid } from './automix/transitionStrategy';
 import { useLyricSettingsStore } from '../stores/useLyricSettingsStore';
 import { useAutomixSettingsStore } from '../stores/useAutomixSettingsStore';
@@ -27,6 +31,7 @@ import { useAudioSettingsStore } from '../stores/useAudioSettingsStore';
 import { onlineFailureOf } from './onlineMusic/failure/onlineFailureCase';
 import { noteOnlineRequestCooldown, onlineRequestCooldown } from './onlineMusic/failure/onlineRequestCooldown';
 import { usePlaybackStore } from '../stores/usePlaybackStore';
+import { getExternalSong, isExternalPlaybackReadyForPrefetch, subscribeExternalPlayback } from './onlineMusic/externalPlayback';
 
 // Prefetch configuration
 //
@@ -71,14 +76,60 @@ const analyseForAutomix = (song: SongResult, audioUrl: string | null | undefined
     // than restated here. It was restated here once: crossfade ran the model on every prefetched
     // track and threw the answer away, because a comment in this file said crossfade did "beat
     // alignment" and nothing next to the planner could contradict it.
-    if (!settingsAutomixSettings.automixEnabled) return;
+    //
+    // The volume balance (ReplayGain 'auto') reads the profile's loudness too, so it asks for one with
+    // blending off - without the beat model, which only a blend reads.
+    const balancing = usePlaybackStore.getState().replayGainMode === 'auto';
+    // The balance's own record is read straight from the cache, not behind the analysis queue.
+    if (balancing) void loadBalanceRecord(song);
+    if (!settingsAutomixSettings.automixEnabled && !balancing) return;
     void ensureTrackProfile({
         song,
         audioUrl: audioUrl === 'CACHED_IN_DB' ? null : audioUrl ?? null,
         enableMediaCache: settingsAudioSettings.enableMediaCache,
-        wantGrid: modeNeedsBeatGrid(settingsAutomixSettings.transitionMode),
+        wantGrid: settingsAutomixSettings.automixEnabled && modeNeedsBeatGrid(settingsAutomixSettings.transitionMode),
     });
 };
+
+/**
+ * Where the analyser may read a library song from: a Navidrome song's stream, built from the
+ * configuration of now as playback builds it (songAudioSource.ts) - not the address stored on the
+ * queued song, which a restored queue may carry from a server since moved. A local file has no URL
+ * to give - the analyser reads it off its own handle (analysis/trackAudio.ts).
+ */
+const libraryAudioUrl = (song: SongResult): string | null => {
+    const carrier = resolveNavidromePlaybackCarrier(song);
+    const config = carrier ? getNavidromeConfig() : null;
+    if (!carrier || !config) return null;
+    try {
+        return navidromeApi.getStreamUrl(config, carrier.navidromeData.id);
+    } catch {
+        // A server address that is not a URL: playback says so; the prefetch of the songs around is not stopped for it.
+        return null;
+    }
+};
+
+/**
+ * The tracks the analysis scope was last set to - the current one and the one after it - kept to answer
+ * a transcode registering for one of them (below).
+ */
+let analysisScopeSongs: readonly SongResult[] = [];
+
+// A transcode registering for a track in scope moves its analysis to the transcode's key, and nothing
+// asks about that key on its own: the request made at the track change went out under the original's
+// key and read the file the browser could not play, and the next prefetch pass comes with a queue
+// edit, a shuffle or the next track change - usually the last, by when this track has left the scope.
+// So it is asked here - a read of the transcode, which is on this machine, or of the profile an
+// earlier session stored under its key. Matched on the source revision as well as the song, as the
+// registry matches it, and compared here rather than looked up: a lookup that misses the revision
+// drops the registration (representationRegistry.ts).
+onPlaybackRepresentationRegistered(representation => {
+    const song = analysisScopeSongs.find(candidate => (
+        getPlaybackSongKey(candidate) === representation.songKey
+        && candidate.playbackSourceRevision === representation.sourceRevision
+    ));
+    if (song) analyseForAutomix(song, libraryAudioUrl(song));
+});
 
 export interface PrefetchedSongData {
     songKey: string;
@@ -103,6 +154,12 @@ const prefetchCache = new Map<string, PrefetchedSongData>();
 
 const getPrefetchSongKey = (song: SongResult): string => getSongResourceCacheKey('audio', song);
 
+// Switched on mid-song: the playing and the next track are measured now, not from the next song change.
+usePlaybackStore.subscribe((state, previous) => {
+    if (state.replayGainMode !== 'auto' || previous.replayGainMode === 'auto') return;
+    analysisScopeSongs.forEach(song => analyseForAutomix(song, prefetchCache.get(getPrefetchSongKey(song))?.audioUrl ?? libraryAudioUrl(song)));
+});
+
 const touchPrefetchCacheEntry = (songKey: string, data: PrefetchedSongData): PrefetchedSongData => {
     prefetchCache.delete(songKey);
     prefetchCache.set(songKey, data);
@@ -111,6 +168,25 @@ const touchPrefetchCacheEntry = (songKey: string, data: PrefetchedSongData): Pre
 
 // Track current prefetch operation to cancel on queue change
 let currentPrefetchAbortController: AbortController | null = null;
+
+// A restored or buffering external player gets the page's network capacity before nearby metadata.
+const waitForExternalPrefetch = (song: SongResult, signal: AbortSignal): Promise<boolean> => {
+    if (signal.aborted) return Promise.resolve(false);
+    if (isExternalPlaybackReadyForPrefetch(song)) return Promise.resolve(true);
+    return new Promise(resolve => {
+        const finish = (ready: boolean) => {
+            unsubscribe();
+            signal.removeEventListener('abort', abort);
+            resolve(ready);
+        };
+        const abort = () => finish(false);
+        const unsubscribe = subscribeExternalPlayback(() => {
+            if (isExternalPlaybackReadyForPrefetch(song)) finish(true);
+            else if (!getExternalSong() || getPlaybackSongKey(getExternalSong()!) !== getPlaybackSongKey(song)) finish(false);
+        });
+        signal.addEventListener('abort', abort, { once: true });
+    });
+};
 /**
  * Check if a prefetched URL is still valid (not expired)
  */
@@ -181,6 +257,8 @@ export const resolvePrefetchAudioUrl = async (
 ): Promise<PrefetchedAudioUrl | null> => {
     const sourceRef = getPlaybackSourceRef(song);
     const providerId = sourceRef.kind === 'online' ? sourceRef.providerId : undefined;
+    // The provider's own player fetches what it plays; there is no URL for this app to prefetch.
+    if (omni.canPlayExternally(song)) return null;
     try {
         // A copy fetched at another level than the one asked for does not count: playback will
         // pass it over, so the song gets a URL here like one with no copy.
@@ -223,6 +301,13 @@ const prefetchSong = async (
     if (signal.aborted) return;
 
     const sourceRef = getPlaybackSourceRef(song);
+    if (sourceRef.kind === 'local' || sourceRef.kind === 'navidrome') {
+        // Nothing light to fetch for a library song - its lyrics and cover come with the record - but
+        // the automix analysis is owed to it like to any track. Skipping it here left every library
+        // transition with no profile at either end, so each one came out a plain fade.
+        analyseForAutomix(song, libraryAudioUrl(song));
+        return;
+    }
     if (sourceRef.kind !== 'online') {
         console.log(`[Prefetch] Skipping non-online song: ${song.name}`);
         return;
@@ -322,7 +407,16 @@ const prefetchSong = async (
   const settingsLyricSettings = useLyricSettingsStore.getState();
                 const autoUseBest = settingsLyricSettings.autoUseBestLyric;
                 const preferredSource = settingsLyricSettings.preferredAlternativeLyricSource;
-                const shouldAutoMatch = autoUseBest && !onlineLyricsState?.hasOnlineOverride;
+                // A provider's own word-level timing is not searched for another source while it
+                // is also the preferred one (the matcher enforces this too; skipping the search
+                // here also avoids the requests). Any other preferred source is still asked.
+                const keepsOwnWordTiming = settlesOnOwnWordTiming({
+                    ownSource: getPlatformLyricSource(sourceRef.providerId)?.id,
+                    prefersOwn: omni.prefersOwnWordByWordLyrics(song),
+                    lyrics: parsedLyrics,
+                    keepOwn: settingsLyricSettings.keepProviderWordTiming,
+                }, preferredSource);
+                const shouldAutoMatch = autoUseBest && !onlineLyricsState?.hasOnlineOverride && !keepsOwnWordTiming;
 
                 if (shouldAutoMatch) {
                     try {
@@ -332,7 +426,9 @@ const prefetchSong = async (
                         const bestMatch = await autoMatchBestLyric(song.name, artistName, metadata.durationMs, {
                             album: metadata.album?.name,
                             preferredSource: settingsLyricSettings.preferredAlternativeLyricSource,
+                            keepOwnWordTiming: settingsLyricSettings.keepProviderWordTiming,
                             alternateArtist: () => omni.getAlternateArtistName(song),
+                            searchAlias: () => omni.getLyricSearchAlias(song),
                             ...(ownLyricSource
                                 ? { providerCandidate: {
                                     providerId: ownLyricSource.id,
@@ -463,17 +559,19 @@ export const prefetchNearbySongs = async (
     }
     currentPrefetchAbortController = new AbortController();
     const signal = currentPrefetchAbortController.signal;
+    if (omni.canPlayExternally(currentSong) && !(await waitForExternalPrefetch(currentSong, signal))) return;
+    if (signal.aborted) return;
 
     // Find current song index in queue
     const currentSongKey = getPrefetchSongKey(currentSong);
     const currentIndex = queueIndexOf(queue, currentSong);
 
     // Told before anything is asked for, so the analyser can drop work it has queued for tracks that
-    // are no longer either half of the next transition. This function is called when an online track
-    // starts playing, when a session is restored and when the queue is shuffled - analysis is serial,
-    // so a stale entry does not merely waste itself, it delays the track the listener just chose.
-    // It is not called when the queue is edited or the repeat mode changes: the scope follows those
-    // at the next track change.
+    // are no longer either half of the next transition. This function is called when a track
+    // starts playing, when a session is restored, when the queue is shuffled and when an edit changes
+    // what is next (refreshPrefetchAfterQueueEdit) - analysis is serial, so a stale entry does not merely
+    // waste itself, it delays the track the listener just chose. It is not called when the repeat mode
+    // changes: the scope follows that at the next track change.
     // The next half is the track automix would blend into, by the same function automix asks: in
     // repeat-all the last track's is the queue's first, and the last Personal FM track has none.
     const nextSong = nextTransitionSong(
@@ -482,7 +580,8 @@ export const prefetchNearbySongs = async (
         useAudioSettingsStore.getState().loopMode,
         usePlaybackStore.getState().isFmMode,
     );
-    setAnalysisScope(nextSong ? [currentSong, nextSong] : [currentSong]);
+    analysisScopeSongs = nextSong ? [currentSong, nextSong] : [currentSong];
+    setAnalysisScope(analysisScopeSongs);
 
     if (currentIndex === -1) {
         console.log('[Prefetch] Current song not in queue, skipping prefetch');
@@ -531,7 +630,7 @@ export const prefetchNearbySongs = async (
     // The track playing right now is the other half of every transition it is about to be in, and
     // it is not in the prefetch set, so it would otherwise only ever be analysed on a second
     // listen. Its own prefetch entry usually still holds the URL it was resolved from.
-    analyseForAutomix(currentSong, prefetchCache.get(currentSongKey)?.audioUrl);
+    analyseForAutomix(currentSong, prefetchCache.get(currentSongKey)?.audioUrl ?? libraryAudioUrl(currentSong));
 
     // Prefetch using requestIdleCallback for non-blocking execution
     const prefetchWithIdle = (songs: SongResult[], index: number) => {
@@ -577,24 +676,12 @@ export const cleanupPrefetchCache = (currentQueue: SongResult[]): void => {
     console.log(`[Prefetch] Cleanup complete, cache size: ${prefetchCache.size}`);
 };
 
-export const invalidatePrefetchedLyrics = (): void => {
-    for (const [songKey, cached] of prefetchCache.entries()) {
-        prefetchCache.set(songKey, {
-            ...cached,
-            lyrics: null,
-            lyricRaw: null,
-            lyricPreferenceSource: null,
-        });
-    }
-
-    console.log(`[Prefetch] Invalidated lyrics for ${prefetchCache.size} prefetched songs`);
-};
-
 // Aborts provider-bound work and releases every in-memory prefetch entry.
 export const clearPrefetchRuntime = (): void => {
     currentPrefetchAbortController?.abort();
     currentPrefetchAbortController = null;
     prefetchCache.clear();
+    analysisScopeSongs = [];
 };
 
 /**
