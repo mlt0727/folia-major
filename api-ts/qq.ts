@@ -41,8 +41,8 @@ export default async function handler(request: Request): Promise<Response> {
 
   // These HTTP-only stream hosts cannot be fetched by an HTTPS page. The fixed-origin rewrites
   // in vercel.json stream their bytes and preserve Range responses without buffering whole songs.
-  const payload = await response.json();
-  for (const entry of Object.values(payload?.data?.playUrl ?? {}) as Array<{ url?: string }>) {
+  const payload = await response.json() as { data?: { playUrl?: Record<string, { url?: string } | null> } } | null;
+  for (const entry of Object.values(payload?.data?.playUrl ?? {})) {
     if (typeof entry?.url !== 'string') continue;
     const stream = /^http:\/\/(sjy6|dl)\.stream\.qqmusic\.qq\.com\//.exec(entry.url);
     if (stream) entry.url = entry.url.replace(stream[0], `${url.origin}/api/qq-audio/${stream[1]}/`);
