@@ -39,7 +39,10 @@ const rejectionPattern = (parameter) => {
     `(?:unsupported|invalid|unknown|unrecognized|not allowed)\\s+(?:(?:parameter|argument|field)\\s*)?[:=]?\\s*["']?${escaped}\\b`
       + `|\\b${escaped}\\b\\s+(?:is\\s+)?(?:unsupported|not supported|not allowed|unrecognized)`
       + `|extra_forbidden[^\\r\\n]*\\bloc(?:ation)?\\s*[:=]\\s*["']?${escaped}\\b`
-      + `|\\bloc(?:ation)?\\s*[:=]\\s*["']?${escaped}\\b[^\\r\\n]*extra_forbidden`,
+      + `|\\bloc(?:ation)?\\s*[:=]\\s*["']?${escaped}\\b[^\\r\\n]*extra_forbidden`
+      + (parameter === 'response_format'
+        ? `|(?:^|[\\r\\n])\\s*${escaped}\\.type:\\s*Input should be\\b`
+        : ''),
     'i',
   );
 };
