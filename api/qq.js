@@ -25,8 +25,23 @@ export default async function handler(request) {
     const search = params.toString();
     const target = new URL(`${normalized}${search ? `?${search}` : ''}`, url.origin);
     // 用原请求构造新请求，method / headers / body 全部保留：`X-QQ-Session` 靠这里带到后端。
-    return handleRequest(new Request(target, request), {
+    const response = await handleRequest(new Request(target, request), {
         QQ_SESSION_SECRET: process.env.QQ_SESSION_SECRET,
         QQ_SESSION_SECRET_PREVIOUS: process.env.QQ_SESSION_SECRET_PREVIOUS,
     });
+    if (!response.ok || !/^\/getMusicPlay(?:\/|$)/.test(normalized))
+        return response;
+    // These HTTP-only stream hosts cannot be fetched by an HTTPS page. The fixed-origin rewrites
+    // in vercel.json stream their bytes and preserve Range responses without buffering whole songs.
+    const payload = await response.json();
+    for (const entry of Object.values(payload?.data?.playUrl ?? {})) {
+        if (typeof entry?.url !== 'string')
+            continue;
+        const stream = /^http:\/\/(sjy6|dl)\.stream\.qqmusic\.qq\.com\//.exec(entry.url);
+        if (stream)
+            entry.url = entry.url.replace(stream[0], `${url.origin}/api/qq-audio/${stream[1]}/`);
+    }
+    const headers = new Headers(response.headers);
+    headers.delete('content-length');
+    return new Response(JSON.stringify(payload), { status: response.status, headers });
 }

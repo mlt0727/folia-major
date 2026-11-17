@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // test/unit/onlineMusic/qqServerlessAdapter.test.ts
-// 两个平台的部署 adapter 只负责一件事：把 `/api/qq/...` 还原成后端 `./serverless` 认识的路径。
+// 部署 adapter 还原后端路径；Vercel 还将 HTTP 音频地址映射到本站 HTTPS 流式转发路由。
 // 这里断言的是「还原结果」，不是后端行为 —— 后端契约由 qq-music-api 自己的测试守。
 
 const handleRequestMock = vi.hoisted(() => vi.fn());
@@ -100,6 +100,28 @@ describe('QQ serverless deployment adapters', () => {
     });
 
     describe('Vercel edge entry', () => {
+        it('serves HTTP stream links through the HTTPS site while keeping signed queries intact', async () => {
+            handleRequestMock.mockResolvedValue(Response.json({ data: { playUrl: {
+                primary: { url: 'http://sjy6.stream.qqmusic.qq.com/F000song.flac?vkey=test%2Bkey&guid=123', error: false },
+                backup: { url: 'http://dl.stream.qqmusic.qq.com/M500song.mp3?vkey=backup', error: false },
+                secure: { url: 'https://isure.stream.qqmusic.qq.com/song.mp3?vkey=secure', error: false },
+                unrelated: { url: 'http://sjy6.stream.qqmusic.qq.com.example.test/song.mp3', error: false },
+                empty: { url: '', error: '暂无播放链接' },
+            } } }, { headers: { 'Cache-Control': 'no-store' } }));
+
+            const response = await vercelHandler(new Request('https://folia.example/api/qq?path=/getMusicPlay/song'));
+            const result = await response.json();
+
+            expect(result.data.playUrl).toEqual({
+                primary: { url: 'https://folia.example/api/qq-audio/sjy6/F000song.flac?vkey=test%2Bkey&guid=123', error: false },
+                backup: { url: 'https://folia.example/api/qq-audio/dl/M500song.mp3?vkey=backup', error: false },
+                secure: { url: 'https://isure.stream.qqmusic.qq.com/song.mp3?vkey=secure', error: false },
+                unrelated: { url: 'http://sjy6.stream.qqmusic.qq.com.example.test/song.mp3', error: false },
+                empty: { url: '', error: '暂无播放链接' },
+            });
+            expect(response.headers.get('Cache-Control')).toBe('no-store');
+        });
+
         it('rebuilds the backend path from the rewrite parameter and drops it from the query', async () => {
             // vercel.json 把 /api/qq/login/qr/check?key=abc 改写成这个形状。
             await vercelHandler(
